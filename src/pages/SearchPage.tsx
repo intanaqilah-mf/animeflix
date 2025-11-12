@@ -91,13 +91,34 @@ export default function SearchPage() {
     ? searchResults.slice(10)
     : searchResults;
 
-  // Helper function to build trailer URL
+  // Helper function to build trailer URL for embed
   const buildTrailerUrl = (embedUrl: string, youtubeId: string | null, muted: boolean = true): string => {
     // The embed_url from API already contains autoplay=1, so we append additional params
     const separator = embedUrl.includes('?') ? '&' : '?';
     const playlistParam = youtubeId ? `&playlist=${youtubeId}` : '';
     const muteParam = muted ? '&mute=1' : '';
     return `${embedUrl}${separator}${muteParam}&controls=0&showinfo=0&rel=0&loop=1${playlistParam}`;
+  };
+
+  // Helper function to get YouTube watch URL
+  const getYouTubeWatchUrl = (trailer: { url: string | null; embed_url: string | null; youtube_id: string | null } | null): string | null => {
+    if (!trailer) return null;
+
+    // If url exists, use it
+    if (trailer.url) return trailer.url;
+
+    // If youtube_id exists, build URL from it
+    if (trailer.youtube_id) return `https://www.youtube.com/watch?v=${trailer.youtube_id}`;
+
+    // Extract video ID from embed_url
+    if (trailer.embed_url) {
+      const match = trailer.embed_url.match(/\/embed\/([^?]+)/);
+      if (match && match[1]) {
+        return `https://www.youtube.com/watch?v=${match[1]}`;
+      }
+    }
+
+    return null;
   };
 
   // Debug: Log trailer info
@@ -144,8 +165,26 @@ export default function SearchPage() {
               </div>
               <p className="hero-synopsis">{featuredAnime.synopsis?.slice(0, 200)}...</p>
               <div className="hero-buttons">
-                <button className="hero-button hero-button-play">▶ Watch Now</button>
-                <button className="hero-button hero-button-info">ℹ More Info</button>
+                {getYouTubeWatchUrl(featuredAnime.trailer) ? (
+                  <a
+                    href={getYouTubeWatchUrl(featuredAnime.trailer)!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hero-button hero-button-play"
+                  >
+                    ▶ Watch Now
+                  </a>
+                ) : (
+                  <button className="hero-button hero-button-play" disabled>
+                    ▶ Watch Now
+                  </button>
+                )}
+                <Link
+                  to={`/anime/${featuredAnime.mal_id}`}
+                  className="hero-button hero-button-info"
+                >
+                  ℹ More Info
+                </Link>
               </div>
             </div>
 
@@ -154,7 +193,7 @@ export default function SearchPage() {
               <h2 className="carousel-title">Top 10 Anime</h2>
               <div className="carousel-container">
                 <div className="carousel-track">
-                  {searchResults.slice(0, 10).map((anime, index) => (
+                  {searchResults.slice(1, 10).map((anime, index) => (
                     <Link
                       key={anime.mal_id}
                       to={`/anime/${anime.mal_id}`}
@@ -162,7 +201,7 @@ export default function SearchPage() {
                       onMouseEnter={() => handleCardHover(index)}
                       onMouseLeave={handleCardLeave}
                     >
-                      <div className="top-rank-badge">{index + 1}</div>
+                      <div className="top-rank-badge">{index + 2}</div>
                       <div className="carousel-card-image">
                         {hoveredCardIndex === index && anime.trailer?.embed_url ? (
                           <iframe
