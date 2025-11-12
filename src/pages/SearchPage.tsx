@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
@@ -26,7 +26,7 @@ export default function SearchPage() {
   const [hoveredCardIndex, setHoveredCardIndex] = useState<number | null>(null);
   const [playMainTrailer, setPlayMainTrailer] = useState(true);
 
-  const fetchAnime = async (query: string, page: number, genres: number[]) => {
+  const fetchAnime = useCallback(async (query: string, page: number, genres: number[]) => {
     try {
       dispatch(setLoading(true));
 
@@ -46,33 +46,36 @@ export default function SearchPage() {
         dispatch(setError(err.message));
       }
     }
-  };
+  }, [dispatch]);
 
   // Fetch anime when search query, page, or genres change
   useEffect(() => {
+    console.log('useEffect triggered - fetching page:', currentPage);
     fetchAnime(searchQuery, currentPage, selectedGenres);
 
     // Cleanup: cancel any pending requests when component unmounts
     return () => {
       cancelSearch();
     };
-  }, [searchQuery, currentPage, selectedGenres]);
+  }, [searchQuery, currentPage, selectedGenres, fetchAnime]);
 
-  const handleSearch = (query: string) => {
+  const handleSearch = useCallback((query: string) => {
     dispatch(setSearchQuery(query));
-  };
+  }, [dispatch]);
 
-  const handleGenreChange = (genres: number[]) => {
+  const handleGenreChange = useCallback((genres: number[]) => {
     dispatch(setSelectedGenres(genres));
-  };
+  }, [dispatch]);
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = useCallback((page: number) => {
+    console.log('handlePageChange called with page:', page);
     dispatch(setCurrentPage(page));
-  };
+    console.log('Dispatched setCurrentPage');
+  }, [dispatch]);
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     fetchAnime(searchQuery, currentPage, selectedGenres);
-  };
+  }, [fetchAnime, searchQuery, currentPage, selectedGenres]);
 
   const handleCardHover = (index: number) => {
     setHoveredCardIndex(index);
@@ -87,7 +90,8 @@ export default function SearchPage() {
   const featuredAnime = searchResults[0];
 
   // Filter out top 10 anime from the main grid when showing the hero banner
-  const displayedAnime = !searchQuery && searchResults.length > 0
+  // Only slice on the first page when there's no search query
+  const displayedAnime = !searchQuery && searchResults.length > 0 && currentPage === 1
     ? searchResults.slice(10)
     : searchResults;
 
@@ -121,24 +125,17 @@ export default function SearchPage() {
     return null;
   };
 
-  // Debug: Log trailer info
+  // Debug: Log pagination info (removed displayedAnime from deps to prevent extra renders)
   useEffect(() => {
-    if (featuredAnime?.trailer) {
-      console.log('Featured anime trailer:', featuredAnime.trailer);
-    }
-    if (searchResults.length > 0) {
-      console.log('First 3 anime trailers:', searchResults.slice(0, 3).map(a => ({
-        title: a.title,
-        trailer: a.trailer
-      })));
-    }
-  }, [featuredAnime, searchResults]);
+    console.log('Current page:', currentPage);
+    console.log('Search results count:', searchResults.length);
+  }, [currentPage, searchResults]);
 
   return (
     <>
       {/* Netflix-style Full-Width Hero Banner with Top 10 Inside */}
       {!searchQuery && featuredAnime && !isLoading && (
-        <div className="hero-banner-full">
+        <div className="hero-banner-full" style={{ display: currentPage === 1 ? 'block' : 'none' }}>
           {/* Background image or trailer */}
           {playMainTrailer && featuredAnime.trailer?.embed_url ? (
             <iframe

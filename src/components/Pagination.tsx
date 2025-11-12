@@ -48,20 +48,17 @@ export default function Pagination({ pagination, currentPage, onPageChange }: Pa
   const handlePrevious = () => {
     if (currentPage > 1) {
       onPageChange(currentPage - 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const handleNext = () => {
     if (has_next_page) {
       onPageChange(currentPage + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const handlePageClick = (page: number) => {
     onPageChange(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
