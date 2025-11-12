@@ -603,8 +603,8 @@ body::before {
 .hero-banner-full {
   position: relative;
   width: 100vw;
-  height: 120vh;
-  min-height: 900px;
+  height: 140vh;
+  min-height: 1000px;
   margin-left: calc(-50vw + 50%);
   margin-right: calc(-50vw + 50%);
   margin-bottom: 60px;
@@ -659,6 +659,11 @@ body::before {
   padding: 0 60px;
   color: white;
   flex-shrink: 0;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
 }
 
 .hero-title {
@@ -1711,6 +1716,8 @@ body::before {
   width: 100%;
   padding: 20px 0 40px 0;
   margin-top: auto;
+  flex-shrink: 0;
+  min-height: fit-content;
 }
 
 .carousel-title {

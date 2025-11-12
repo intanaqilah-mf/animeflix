@@ -192,7 +192,7 @@ export default function SearchPage() {
                         {hoveredCardIndex === index && anime.trailer?.embed_url ? (
                           <iframe
                             className="carousel-trailer"
-                            src={buildTrailerUrl(anime.trailer.embed_url, anime.trailer.youtube_id, false)}
+                            src={buildTrailerUrl(anime.trailer.embed_url, anime.trailer.youtube_id, true)}
                             title={anime.title}
                             allow="autoplay; encrypted-media"
                             allowFullScreen
