@@ -92,11 +92,12 @@ export default function SearchPage() {
     : searchResults;
 
   // Helper function to build trailer URL
-  const buildTrailerUrl = (embedUrl: string, youtubeId: string | null): string => {
+  const buildTrailerUrl = (embedUrl: string, youtubeId: string | null, muted: boolean = true): string => {
     // The embed_url from API already contains autoplay=1, so we append additional params
     const separator = embedUrl.includes('?') ? '&' : '?';
     const playlistParam = youtubeId ? `&playlist=${youtubeId}` : '';
-    return `${embedUrl}${separator}mute=1&controls=0&showinfo=0&rel=0&loop=1${playlistParam}`;
+    const muteParam = muted ? '&mute=1' : '';
+    return `${embedUrl}${separator}${muteParam}&controls=0&showinfo=0&rel=0&loop=1${playlistParam}`;
   };
 
   // Debug: Log trailer info
@@ -166,7 +167,7 @@ export default function SearchPage() {
                         {hoveredCardIndex === index && anime.trailer?.embed_url ? (
                           <iframe
                             className="carousel-trailer"
-                            src={buildTrailerUrl(anime.trailer.embed_url, anime.trailer.youtube_id)}
+                            src={buildTrailerUrl(anime.trailer.embed_url, anime.trailer.youtube_id, false)}
                             title={anime.title}
                             allow="autoplay; encrypted-media"
                             allowFullScreen
