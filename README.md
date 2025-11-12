@@ -4,7 +4,7 @@ A Netflix-inspired anime search application built with React, TypeScript, and Re
 
 ## Live Demo
 
-🔗 [View Live Application](#) _(Add your deployment URL here)_
+🔗 [View Live Application](#)](https://intanaqilah-mf.github.io/animeflix/)
 
 ---
 
@@ -335,6 +335,5 @@ This project was created as part of the YoPrint React coding assessment.
 
 ---
 
-**Author:** [Your Name]
-**Contact:** [Your Email or LinkedIn]
-**GitHub:** [Your GitHub Profile]
+**Author:** Intan Aqilah
+**Contact:** [mohdfaddilintan@gmail.com]
