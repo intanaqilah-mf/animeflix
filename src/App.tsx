@@ -43,6 +43,10 @@ function AppContent() {
     dispatch(setSearchQuery(query));
   };
 
+  const handleGenreFilterChange = (genres: number[]) => {
+    dispatch(setSelectedGenres(genres));
+  };
+
   return (
     <div className="app">
       <Header
@@ -50,6 +54,7 @@ function AppContent() {
         onSearch={handleSearch}
         searchValue={searchQuery}
         selectedGenres={selectedGenres}
+        onGenreFilterChange={handleGenreFilterChange}
       />
       <Routes>
         <Route path="/" element={<SearchPage />} />
