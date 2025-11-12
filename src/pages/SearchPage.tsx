@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import {
@@ -21,6 +21,10 @@ export default function SearchPage() {
   const dispatch = useAppDispatch();
   const { searchResults, searchQuery, selectedGenres, currentPage, pagination, isLoading, error } =
     useAppSelector((state) => state.anime);
+
+  // State for managing trailer playback
+  const [hoveredCardIndex, setHoveredCardIndex] = useState<number | null>(null);
+  const [playMainTrailer, setPlayMainTrailer] = useState(true);
 
   const fetchAnime = async (query: string, page: number, genres: number[]) => {
     try {
@@ -70,6 +74,16 @@ export default function SearchPage() {
     fetchAnime(searchQuery, currentPage, selectedGenres);
   };
 
+  const handleCardHover = (index: number) => {
+    setHoveredCardIndex(index);
+    setPlayMainTrailer(false);
+  };
+
+  const handleCardLeave = () => {
+    setHoveredCardIndex(null);
+    setPlayMainTrailer(true);
+  };
+
   const featuredAnime = searchResults[0];
 
   // Filter out top 10 anime from the main grid when showing the hero banner
@@ -77,11 +91,48 @@ export default function SearchPage() {
     ? searchResults.slice(10)
     : searchResults;
 
+  // Helper function to build trailer URL
+  const buildTrailerUrl = (embedUrl: string, youtubeId: string | null): string => {
+    // The embed_url from API already contains autoplay=1, so we append additional params
+    const separator = embedUrl.includes('?') ? '&' : '?';
+    const playlistParam = youtubeId ? `&playlist=${youtubeId}` : '';
+    return `${embedUrl}${separator}mute=1&controls=0&showinfo=0&rel=0&loop=1${playlistParam}`;
+  };
+
+  // Debug: Log trailer info
+  useEffect(() => {
+    if (featuredAnime?.trailer) {
+      console.log('Featured anime trailer:', featuredAnime.trailer);
+    }
+    if (searchResults.length > 0) {
+      console.log('First 3 anime trailers:', searchResults.slice(0, 3).map(a => ({
+        title: a.title,
+        trailer: a.trailer
+      })));
+    }
+  }, [featuredAnime, searchResults]);
+
   return (
     <>
       {/* Netflix-style Full-Width Hero Banner with Top 10 Inside */}
       {!searchQuery && featuredAnime && !isLoading && (
-        <div className="hero-banner-full" style={{ backgroundImage: `url(${featuredAnime.images.jpg.large_image_url})` }}>
+        <div className="hero-banner-full">
+          {/* Background image or trailer */}
+          {playMainTrailer && featuredAnime.trailer?.embed_url ? (
+            <iframe
+              className="hero-trailer"
+              src={buildTrailerUrl(featuredAnime.trailer.embed_url, featuredAnime.trailer.youtube_id)}
+              title={featuredAnime.title}
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+            />
+          ) : (
+            <div
+              className="hero-banner-bg"
+              style={{ backgroundImage: `url(${featuredAnime.images.jpg.large_image_url})` }}
+            />
+          )}
+
           <div className="hero-overlay">
             <div className="hero-content">
               <h1 className="hero-title">{featuredAnime.title}</h1>
@@ -103,10 +154,26 @@ export default function SearchPage() {
               <div className="carousel-container">
                 <div className="carousel-track">
                   {searchResults.slice(0, 10).map((anime, index) => (
-                    <Link key={anime.mal_id} to={`/anime/${anime.mal_id}`} className="carousel-card">
+                    <Link
+                      key={anime.mal_id}
+                      to={`/anime/${anime.mal_id}`}
+                      className="carousel-card"
+                      onMouseEnter={() => handleCardHover(index)}
+                      onMouseLeave={handleCardLeave}
+                    >
                       <div className="top-rank-badge">{index + 1}</div>
                       <div className="carousel-card-image">
-                        <img src={anime.images.jpg.large_image_url} alt={anime.title} />
+                        {hoveredCardIndex === index && anime.trailer?.embed_url ? (
+                          <iframe
+                            className="carousel-trailer"
+                            src={buildTrailerUrl(anime.trailer.embed_url, anime.trailer.youtube_id)}
+                            title={anime.title}
+                            allow="autoplay; encrypted-media"
+                            allowFullScreen
+                          />
+                        ) : (
+                          <img src={anime.images.jpg.large_image_url} alt={anime.title} />
+                        )}
                       </div>
                     </Link>
                   ))}
